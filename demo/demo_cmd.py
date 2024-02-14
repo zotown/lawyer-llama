@@ -5,6 +5,7 @@ from transformers import LlamaForCausalLM, LlamaTokenizer, TextIteratorStreamer
 import torch
 import argparse
 
+
 def json_send(url, data=None, method="POST"):
     headers = {"Content-type": "application/json",
                "Accept": "text/plain", "charset": "UTF-8"}
@@ -16,6 +17,7 @@ def json_send(url, data=None, method="POST"):
     elif method == "GET":
         response = requests.get(url=url, headers=headers)
     return json.loads(response.text)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -50,16 +52,16 @@ if __name__ == "__main__":
             chat_history = []
             print("Chat history cleared.")
             continue
-        
-        if args.use_chat_mode:
-            history_user_input = [x[0] for x in chat_history]
-            input_to_classifier = " ".join(history_user_input) + " " + current_user_input
-        else:
-            input_to_classifier = current_user_input
-        data = {"input": input_to_classifier}
-        result = json_send(classifier_url, data, method="POST")
-        retrieve_output = result['output']
-            
+
+        # if args.use_chat_mode:
+        #     history_user_input = [x[0] for x in chat_history]
+        #     input_to_classifier = " ".join(history_user_input) + " " + current_user_input
+        # else:
+        #     input_to_classifier = current_user_input
+        # data = {"input": input_to_classifier}
+        # result = json_send(classifier_url, data, method="POST")
+        retrieve_output = ""
+
         # 构造输入
         if len(retrieve_output) == 0:
             input_text = "你是人工智能法律助手“Lawyer LLaMA”，能够回答与中国法律相关的问题。\n"
@@ -73,7 +75,7 @@ if __name__ == "__main__":
             input_text += f"### Human: {current_user_input}\n### 参考法条: {retrieve_output[0]['text']}\n{retrieve_output[1]['text']}\n{retrieve_output[2]['text']}\n### Assistant: "
 
         input_ids = tokenizer(input_text, return_tensors="pt").input_ids.to("cuda")
-        outputs = model.generate(input_ids, max_new_tokens=400, do_sample=False, repetition_penalty=1.1)
+        outputs = model.generate(input_ids, max_new_tokens=2341, do_sample=False, repetition_penalty=1.1)
         output_text = str(tokenizer.decode(outputs[0], skip_special_tokens=True))
         # skip prompt
         output_text = output_text[len(input_text):]
@@ -82,4 +84,3 @@ if __name__ == "__main__":
 
         if args.use_chat_mode:
             chat_history.append((current_user_input, output_text))
-
