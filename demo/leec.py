@@ -37,8 +37,8 @@ if __name__ == "__main__":
     output_list=[]
     Count=0
     pbar = tqdm(total=100)
-    pbar.update(6)
-    for qa_data in data[6:101]:
+    pbar.update(29)#6)
+    for qa_data in data[29:101]:
         qa_data["instruction"]="你是人工智能法律助手“Lawyer LLaMA”，能够回答与中国法律相关的问题。\n### Human: "+qa_data["instruction"]
         content = qa_data["instruction"]+qa_data["input"]+"\n### Assistant: "
         if len(content) > MAXLEN:
@@ -58,14 +58,13 @@ if __name__ == "__main__":
         input_ids = tokenizer(content, return_tensors="pt").input_ids.to("cuda")
         outputs = model.generate(input_ids, max_new_tokens=2341, do_sample=False, repetition_penalty=1.1)
         output_text = str(tokenizer.decode(outputs[0], skip_special_tokens=True))
-        pbar.update(1)
         # skip prompt
         output_text = output_text[len(content):]
-
         output_list.append({"ansewer":output_text})
         print("[AI] >>> " + output_text)
+        pbar.update(1)
 
     with open(output_path, 'w', encoding='utf-8') as b:
         # ensure_ascii 显示中文，不以ASCII的方式显示
-        json.dump(output_list, b, ensure_ascii=False, indent=2)  # indent 缩进
+        json.dump(output_list, b, ensure_ascii=False)  # indent 缩进
 
